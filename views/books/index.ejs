@@ -1,0 +1,27 @@
+<%- include('../partials/layout-start', { title: title }) %>
+<%- include('../partials/menu') %>
+  <div class="container">
+    <% books.map((book) => { %>
+      <div class="row mb-3">
+        <div class="col">
+          <div class="w-100">
+          <% if (book.fileCover) { %>
+            <img class="img-thumbnail d-block cover-img" src="/public/img/<%= book.fileCover %>" />
+          <% } else { %>
+            <i class="fas fa-book"></i>
+          <% } %>
+          </div>
+          <a href="<%= `/books/${book.id}` %>"><%= book.title %></a>
+        </div>
+      </div>
+    <% }); %>
+    <div class="row">
+      <div class="col">
+        <a id="add-new-button" href="/books/create" class="btn btn-success">
+          <i class="fas fa-plus me-2"></i>
+          <span>Добавить новую книгу</span>
+        </a>
+      </div>
+    </div>
+  </div>
+<%- include('../partials/layout-end') %>

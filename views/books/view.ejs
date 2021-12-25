@@ -1,0 +1,56 @@
+<%- include('../partials/layout-start', { title: title }) %>
+<%- include('../partials/menu') %>
+  <form
+    method="POST"
+    id="form"
+    action="/books/<%= book.id ? `update/${book.id}` : 'create' %>"
+    enctype='multipart/form-data'
+    class="container"
+  >
+    <div class="container">
+      <% if (book.fileCover) { %>
+        <div class="row mb-3">
+          <div class="col">
+            <img class="rouned mx-auto d-block cover-img" src="/public/img/<%= book.fileCover %>" />
+          </div>
+        </div>
+      <% } %>
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Название</div>
+        <div class="col-9"><%= book.title %></div>
+      </div>
+      <div class="row mb-3">
+        <div class="col">
+          <div class="fw-bold">Описание</div>
+          <div><pre><%= book.description %></pre></div>
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Авторы</div>
+        <div class="col-9"><%= book.authors.join(', ') %></div>
+      </div>
+      
+      <% if (book.fileBook) { %>
+        <div class="row mb-3">
+          <div class="col">
+            <a target="_blank" href="/public/img/<%= book.fileBook %>" class="btn btn-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Скачать книгу</span>
+            </a>
+          </div>
+        </div>
+      <% }; %>
+      
+      <div class="row mb-3">
+        <div class="col">
+          <a href="/books/update/<%= book.id %>" class="btn btn-primary">
+            <i class="fas fa-pencil"></i>
+            <span>Изменить</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    
+  </form>
+<%- include('../partials/layout-end') %>

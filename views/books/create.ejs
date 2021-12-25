@@ -1,0 +1,122 @@
+<%- include('../partials/layout-start', { title: title, link: link }) %>
+<%- include('../partials/menu') %>
+  <form
+    method="POST"
+    id="form"
+    action="/books/<%= book.id ? `update/${book.id}` : 'create' %>"
+    enctype='multipart/form-data'
+    class="container"
+  >
+    <div class="container">
+      <div class="row mb-3">
+        <div class="col">
+          <label class="form-label" for="title">Название книги</label>
+          <input class="form-control" name="title" value="<%= book.title %>" required />
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col">
+          <label class="form-label" for="description">Описание</label>
+          <textarea class="form-control" rows="5" name="description"><%= book.description %></textarea>
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col" id="authors-block">
+          <div class="row mb-2">Авторы</div>
+          <% if (!book.authors) { %>
+            <div class="row mb-2">
+              <div class="col d-flex">
+                <input class="form-control me-2" name="authors" value="<%= book.authors %>" required />
+              </div>
+            </div>
+          <% } else { %>
+            <% book.authors.map(author => { %>
+              <div class="row mb-2">
+                <div class="col d-flex">
+                  <input class="form-control me-2" name="authors" value="<%= author %>" required />
+                </div>
+              </div>
+            <% }); %>
+          <% } %>
+          <div class="row" id="add-author-button-block">
+            <a href="" id="add-author-button">Добавить автора</a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col">
+          <label class="form-label" for="fileCover">Файл обложки</label>
+          <input class="form-control" type="file" name="fileCover" placeholder="Обложка" />
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col">
+          <label class="form-label" for="fileCover">Файл с названием</label>
+          <input class="form-control" type="file" name="fileName" placeholder="Обложка" />
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col">
+          <label class="form-label" for="fileCover">Файл книги</label>
+          <input class="form-control" type="file" name="fileBook" placeholder="Обложка" />
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col">
+          <button class="btn btn-primary"><%= book.id ? 'Обновить' : 'Создать' %></button>
+        </div>
+      </div>
+    </div>
+    
+  </form>
+  <script>
+    function appendAuthorInput(parent) {
+      const newInput = document.createElement('input');
+
+      newInput.setAttribute('placeholder', 'Автор');
+      newInput.setAttribute('name', 'authors');
+      newInput.setAttribute('required', true);
+      newInput.className = 'form-control me-2';
+      parent.append(newInput);
+    }
+
+    function appendAuthorDeleteButton(parent, ancestorToRemove) {
+      const newButton = document.createElement('button');
+      newButton.className = 'btn btn-danger';
+      newButton.innerHTML = '<i class="fas fa-times"></>';
+
+      newButton.onclick = function(e) {
+        ancestorToRemove.remove();
+      }
+
+      parent.append(newButton);
+    }
+
+    const authorsBlock = document.getElementById('authors-block');
+    const authorsItems = Array.from(authorsBlock.children).slice(1, -1);
+
+    authorsItems.forEach((item, index) => {
+      if (index > 0) {
+        appendAuthorDeleteButton(item.children[0], item);
+      }
+    });
+
+    const addAuthorButton = document.getElementById('add-author-button');
+    const addAuthorButtonBlock = document.getElementById('add-author-button-block');
+
+    addAuthorButton.onclick = function(e) {
+      e.preventDefault();
+      const newEntryRow = document.createElement('div');
+      newEntryRow.className = 'row mb-2';
+      const newEntryCol = document.createElement('div');
+      newEntryCol.className = 'col d-flex';
+      newEntryRow.append(newEntryCol);
+      appendAuthorInput(newEntryCol);
+      appendAuthorDeleteButton(newEntryCol, newEntryRow);
+
+      addAuthorButtonBlock.before(newEntryRow);
+    }
+  </script>
+<%- include('../partials/layout-end') %>
