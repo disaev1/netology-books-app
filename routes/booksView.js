@@ -1,5 +1,6 @@
 const express = require('express');
 const { v4: uuid } = require('uuid');
+const { incrCounter, getCounters } = require('../counter');
 
 const { parseBookDataFromReq } = require('../utils');
 const { NotFoundError } = require('../errors');
@@ -10,8 +11,10 @@ const backToBooksLink = { to: '/books', title: 'К списку', icon: 'arrow-l
 
 let books = require('../books');
 
-router.get('/', (__, res) => {
-  res.render('books/index', { title: 'Главная', books, link: false });
+router.get('/', async (__, res) => {
+  const views = await getCounters(books.map(book => book.id));
+
+  res.render('books/index', { title: 'Главбух', books, views, link: false });
 });
 
 router.get('/create', (__, res) => {
@@ -28,7 +31,6 @@ router.post('/create', uploadBookFileFields, (req, res) => {
 router.post('/update/:id', uploadBookFileFields, (req, res) => {
   const { id } = req.params;
   const target = books.find(book => book.id === id);
-  console.log('update book', target);
 
   if (!target) {
     throw new NotFoundError(`There is no book with id = ${id}!`);
@@ -50,7 +52,6 @@ router.post('/update/:id', uploadBookFileFields, (req, res) => {
 router.get('/update/:id', (req, res) => {
   const { id } = req.params;
   const target = books.find(book => book.id === id);
-  console.log('edit book', target);
 
   if (target) {
     res.render('books/create', { title: 'Редактировать книгу', book: target, link: backToBooksLink });
@@ -61,12 +62,14 @@ router.get('/update/:id', (req, res) => {
   throw new NotFoundError(`There is no book with id = ${id}!`);
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const target = books.find(book => book.id === id);
 
   if (target) {
-    res.render('books/view', { title: 'Информация о книге', book: target, link: backToBooksLink });
+    const views = await incrCounter(target.id);
+
+    res.render('books/view', { title: 'Информация о книге', book: target, views, link: backToBooksLink });
 
     return;
   }

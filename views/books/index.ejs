@@ -12,6 +12,7 @@
           <% } %>
           </div>
           <a href="<%= `/books/${book.id}` %>"><%= book.title %></a>
+          <div class="fst-italic text-secondary">Просмотров: <%= views[book.id] %></div>
         </div>
       </div>
     <% }); %>

@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  app:
+    image: disaev/netology-books-app:latest
+    depends_on:
+    - counter
+    ports:
+    - 80:3002
+    environment:
+    - PORT=3002
+
+  counter:
+    image: disaev/netology-books-app-counter:latest
+    depends_on:
+    - storage
+    environment:
+    - REDIS_URL=storage
+
+  storage:
+    image: redis:latest

@@ -30,6 +30,11 @@
         <div class="col-3 fw-bold">Авторы</div>
         <div class="col-9"><%= book.authors.join(', ') %></div>
       </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Просмотров</div>
+        <div class="col-9"><%= views %></div>
+      </div>
       
       <% if (book.fileBook) { %>
         <div class="row mb-3">
