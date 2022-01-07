@@ -11,7 +11,7 @@ services:
     - PORT=3002
 
   counter:
-    image: disaev/netology-books-app-counter:latest
+    image: disaev/netology-counter-app:latest
     depends_on:
     - storage
     environment:
