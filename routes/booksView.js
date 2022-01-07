@@ -14,7 +14,7 @@ let books = require('../books');
 router.get('/', async (__, res) => {
   const views = await getCounters(books.map(book => book.id));
 
-  res.render('books/index', { title: 'Главбух', books, views, link: false });
+  res.render('books/index', { title: 'Главная', books, views, link: false });
 });
 
 router.get('/create', (__, res) => {
