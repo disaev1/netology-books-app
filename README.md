@@ -27,7 +27,7 @@ db.books.findOne({ title: 'In Color Blood' })
 
 ```js
 db.books.updateOne(
-  { _id: found._id },
+  { _id: '61e626f77274f825d5f0f764' },
   {
     $set: {
       description: 'the "Nonfiction Novel"',
