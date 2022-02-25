@@ -17,5 +17,8 @@ services:
     environment:
     - REDIS_URL=storage
 
+  db:
+    image: mongo
+
   storage:
     image: redis:latest

@@ -1,5 +1,7 @@
 const express = require('express');
 const path = require('path');
+const mongoose = require('mongoose');
+
 const apiRoutes = require('./routes/api');
 const booksViewRoutes = require('./routes/booksView');
 
@@ -18,4 +20,10 @@ app.use((req, res) => {
   res.send({ status: 'error', message: `Route "${req.url}" is not found` });
 });
 
-app.listen(PORT);
+async function main() {
+  await mongoose.connect('mongodb://db:27017/test');
+
+  app.listen(PORT);
+}
+
+main().catch(err => console.log(err));
