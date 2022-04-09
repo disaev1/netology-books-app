@@ -2,13 +2,22 @@ const express = require('express');
 const path = require('path');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
+const { Container } = require('inversify');
+require('reflect-metadata');
+
 const { NotFoundError } = require('../../errors');
-const { parseBookDataFromReq } = require('../../utils');
+const { parseBookDataFromReq, notFoundMessage } = require('../../utils');
 const { uploadBookFileFields } = require('../../middleware');
 
 const router = express.Router();
 
-const Book = require('../../book');
+const BooksRepository = require('../../BooksRepository');
+
+const container = new Container();
+
+container.bind(BooksRepository).toSelf();
+
+const repo = container.get(BooksRepository);
 
 function send404(err, res) {
   res.status(404);
@@ -16,75 +25,65 @@ function send404(err, res) {
 }
 
 router.get('/', async (__, res) => {
-  const books = await Book.find({});
+  const books = await repo.getBooks();
 
   res.send(books);
 });
 
-router.post('/', uploadBookFileFields, (req, res) => {
-  const newBook = new Book({ id: uuid(), ...parseBookDataFromReq(req) });
-
-  newBook.save();
+router.post('/', uploadBookFileFields, async (req, res) => {
+  const newBook = await repo.createBook({ id: uuid(), ...parseBookDataFromReq(req) });
 
   res.send(newBook);
 });
 
 router.put('/:id', uploadBookFileFields, async (req, res, next) => {
   const { id } = req.params;
-  const target = await Book.findOne({ id });
+  const updatedBook = await repo.updateBook({ id, ...parseBookDataFromReq(req) });
 
-  if (!target) {
-    next(new NotFoundError(`There is no book with id = ${id}!`));
+  if (!updatedBook) {
+    next(new NotFoundError(notFoundMessage(id)));
   }
-
-  await Book.updateOne({ id }, parseBookDataFromReq(req));
-
-  const updatedBook = await Book.findOne({ id });
 
   res.send(updatedBook);
 });
 
 router.delete('/:id', async (req, res, next) => {
   const { id } = req.params;
-  const target = await Book.findOne({ id });
+  const result = await repo.deleteBook(id);
 
-  if (!target) {
-    next(new NotFoundError(`There is no book with id = ${id}!`));
+  if (!result) {
+    next(new NotFoundError(notFoundMessage(id)));
   }
 
-  await Book.deleteOne({ id });
   res.send({ status: 'ok' });
 });
 
 router.get('/:id', async (req, res, next) => {
   const { id } = req.params;
-  const target = await Book.findOne({ id });
+  const targetBook = await repo.getBook(id);
 
-  if (target) {
-    res.send(target);
-
-    return;
+  if (!targetBook) {
+    next(new NotFoundError(notFoundMessage(id)));
   }
 
-  next(new NotFoundError(`There is no book with id = ${id}!`));
+  res.send(targetBook);
 });
 
 router.get('/:id/download', async (req, res, next) => {
   const { id } = req.params;
+  const targetBook = await repo.getBook(id);
 
-  const target = await Book.findOne({ id });
-
-  if (!target) {
-    next(new NotFoundError(`There is no book with id = ${id}!`));
+  if (!targetBook) {
+    next(new NotFoundError(notFoundMessage(id)));
   }
 
-  if (!target.fileBook) {
+  if (!targetBook.fileBook) {
     next(new Error(`The book with id = ${id} have no fileBook!`));
   }
   
-  res.download(path.resolve(__dirname, `../../public/img/${target.fileBook}`), target.fileBook, err => {
+  res.download(path.resolve(__dirname, `../../public/img/${targetBook.fileBook}`), targetBook.fileBook, err => {
     if (err) {
-      send404(new NotFoundError(`File ${target.fileBook} not found!`), res);
+      send404(new NotFoundError(`File ${targetBook.fileBook} not found!`), res);
     }
   });
 });

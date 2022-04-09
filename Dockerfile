@@ -8,6 +8,6 @@ RUN yarn install
 COPY public/ ./public
 COPY routes/ ./routes
 COPY views/ ./views
-COPY books.js errors.js index.js middleware.js multer.js utils.js counter.js ./
+COPY book.js BooksRepository.js errors.js index.js middleware.js multer.js utils.js counter.js ./
 
 CMD yarn start

@@ -25,4 +25,6 @@ function parseBookDataFromReq(req) {
   return res;
 }
 
-module.exports = { parseBookDataFromReq, bookFileFields };
+const notFoundMessage = id => `There is no book with id = ${id}!`;
+
+module.exports = { parseBookDataFromReq, bookFileFields, notFoundMessage };

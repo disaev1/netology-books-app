@@ -1,18 +1,26 @@
 const express = require('express');
 const { v4: uuid } = require('uuid');
-const { incrCounter, getCounters } = require('../counter');
+const { Container } = require('inversify');
+require('reflect-metadata');
 
-const { parseBookDataFromReq } = require('../utils');
+const { incrCounter, getCounters } = require('../counter');
+const { parseBookDataFromReq, notFoundMessage } = require('../utils');
 const { NotFoundError } = require('../errors');
 const { uploadBookFileFields } = require('../middleware');
 
 const router = express.Router();
 const backToBooksLink = { to: '/books', title: 'К списку', icon: 'arrow-left' };
 
-const Book = require('../book');
+const BooksRepository = require('../BooksRepository');
+
+const container = new Container();
+
+container.bind(BooksRepository).toSelf();
+
+const repo = container.get(BooksRepository);
 
 router.get('/', async (__, res) => {
-  const books = await Book.find({});
+  const books = await repo.getBooks();
   const views = await getCounters(books.map(book => book.id));
 
   res.render('books/index', { title: 'Главная', books, views, link: false });
@@ -22,52 +30,45 @@ router.get('/create', (__, res) => {
   res.render('books/create', { title: 'Добавить книгу', book: {}, link: backToBooksLink });
 });
 
-router.post('/create', uploadBookFileFields, (req, res) => {
-  const newBook = new Book({ id: uuid(), ...parseBookDataFromReq(req) });
+router.post('/create', uploadBookFileFields, async (req, res) => {
+  await repo.createBook({ id: uuid(), ...parseBookDataFromReq(req) });
 
-  newBook.save();
   res.redirect('/books');
 });
 
 router.post('/update/:id', uploadBookFileFields, async (req, res, next) => {
   const { id } = req.params;
-  const target = await Book.findOne({ id });
+  const updatedBook = await repo.updateBook({ id, ...parseBookDataFromReq(req) });
 
-  if (!target) {
-    next(NotFoundError(`There is no book with id = ${id}!`));
+  if (!updatedBook) {
+    next(new NotFoundError(notFoundMessage(id)));
   }
-
-  await Book.updateOne({ id }, parseBookDataFromReq(req));
 
   res.redirect('/books');
 });
 
 router.get('/update/:id', async (req, res, next) => {
   const { id } = req.params;
-  const target = await Book.findOne({ id });
+  const targetBook = await repo.getBook(id);
 
-  if (target) {
-    res.render('books/create', { title: 'Редактировать книгу', book: target, link: backToBooksLink });
-
-    return;
+  if (!targetBook) {
+    next(new NotFoundError(notFoundMessage(id)));
   }
 
-  next(new NotFoundError(`There is no book with id = ${id}!`));
+  res.render('books/create', { title: 'Редактировать книгу', book: targetBook, link: backToBooksLink });
 });
 
 router.get('/:id', async (req, res, next) => {
   const { id } = req.params;
-  const target = await Book.findOne({ id });
+  const targetBook = await repo.getBook(id);
 
-  if (target) {
-    const views = await incrCounter(target.id);
-
-    res.render('books/view', { title: 'Информация о книге', book: target, views, link: backToBooksLink });
-
-    return;
+  if (!targetBook) {
+    next(new NotFoundError(notFoundMessage(id)));
   }
 
-  next(new NotFoundError(`There is no book with id = ${id}!`));
+  const views = await incrCounter(targetBook.id);
+
+  res.render('books/view', { title: 'Информация о книге', book: targetBook, views, link: backToBooksLink });
 });
 
 router.use((err, __, res, ___) => {
