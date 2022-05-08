@@ -16,10 +16,16 @@
     "uuid": "^8.3.2"
   },
   "scripts": {
-    "dev": "nodemon -r dotenv/config ./index.js",
-    "start": "node ./index.js"
+    "build-dev": "tsc -p ./ --watch",
+    "dev": "nodemon -r dotenv/config ./dist/index.js",
+    "start": "node ./dist/index.js"
   },
   "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/lodash": "^4.14.181",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^17.0.25",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "eslint": "^8.12.0",
