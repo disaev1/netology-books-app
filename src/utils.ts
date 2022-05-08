@@ -1,23 +1,33 @@
-const _ = require('lodash');
-const bookFields = ['title', 'description', 'authors', 'favourite'];
-const bookFileFields = ['fileCover', 'fileName', 'fileBook'];
+import { Request } from 'express';
+import _ from 'lodash';
 
-function parseBookDataFromReq(req) {
-  const res = _.pick(req.body, bookFields);
+import { Book } from './book';
+
+const bookFields: string[] = ['title', 'description', 'authors', 'favourite'];
+const bookFileFields: string[] = ['fileCover', 'fileName', 'fileBook'];
+
+interface NamedFilesContainer {
+ [fieldname: string]: Express.Multer.File[];
+}
+
+function parseBookDataFromReq(req: Request) {
+  const res: Book = _.pick(req.body, bookFields);
 
   // In form data "authors" field is a JSON string, it is not automatically parsed
   if ('authors' in res && typeof res.authors === 'string') {
     try {
       res.authors = JSON.parse(res.authors);
     } catch (e) {
-      res.authors = [res.authors];
+      res.authors = [res.authors as string];
     }
   }
 
   if (req.files) {
-    bookFileFields.forEach(field => {
-      if (req.files[field]) {
-        res[field] = req.files[field][0].filename;
+    const files: NamedFilesContainer = req.files as NamedFilesContainer;
+
+    bookFileFields.forEach((field: string) => {
+      if (files[field]) {
+        res[field as keyof Book] = files[field][0].filename;
       }
     });
   }
@@ -25,6 +35,6 @@ function parseBookDataFromReq(req) {
   return res;
 }
 
-const notFoundMessage = id => `There is no book with id = ${id}!`;
+const notFoundMessage = (id: string): string => `There is no book with id = ${id}!`;
 
-module.exports = { parseBookDataFromReq, bookFileFields, notFoundMessage };
+export { parseBookDataFromReq, bookFileFields, notFoundMessage };

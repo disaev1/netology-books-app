@@ -1,16 +1,31 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const bookSchema = new mongoose.Schema({
-  id: String,
-  title: String,
-  description: String,
-  authors: Array,
-  favourite: String,
-  fileCover: String,
-  fileName: String,
-  fileBook: String,
+const { Schema, SchemaTypes } = mongoose;
+
+const bookSchema = new Schema({
+  id: SchemaTypes.String,
+  title: SchemaTypes.String,
+  description: SchemaTypes.String,
+  authors: [SchemaTypes.String],
+  favourite: SchemaTypes.String,
+  fileCover: SchemaTypes.String,
+  fileName: SchemaTypes.String,
+  fileBook: SchemaTypes.String,
 });
 
-const BookModel = mongoose.model('Book', bookSchema);
+interface Book {
+  id?: string;
+  title?: string;
+  description?: string;
+  authors?: string[] | string;
+  favourite?: string;
+  fileCover?: string;
+  fileName?: string;
+  fileBook?: string;
+}
 
-module.exports = BookModel;
+const BookModel = mongoose.model<Book>('Book', bookSchema);
+
+export default BookModel;
+
+export { Book };

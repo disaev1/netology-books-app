@@ -1,6 +1,7 @@
-const upload = require('./multer');
-const { bookFileFields } = require('./utils');
+import upload from './multer';
+import { RequestHandler } from 'express';
+import { bookFileFields } from './utils';
 
-const uploadBookFileFields = upload.fields(bookFileFields.map(field => ({ name: field, maxCount: 1 })));
+const uploadBookFileFields: RequestHandler = upload.fields(bookFileFields.map(field => ({ name: field, maxCount: 1 })));
 
-module.exports = { uploadBookFileFields };
+export { uploadBookFileFields };

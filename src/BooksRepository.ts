@@ -1,63 +1,52 @@
 import 'reflect-metadata';
 import { injectable } from 'inversify';
+import type { Document } from 'mongoose';
 
-/// <reference path="./node.d.ts"/>
-import BookModel = require('./book');
-
-interface Book {
-  id: string;
-  title?: string;
-  description?: string;
-  authors?: string[];
-  favourite?: string;
-  fileCover?: string;
-  fileName?: string;
-  fileBook?: string;
-}
+import BookModel, { Book } from './book';
 
 @injectable()
 class BooksRepository {
-  async createBook(book: Book): Promise<Book> {
-    const newBook = new BookModel(book);
+  static async createBook(book: Book): Promise<Book> {
+    const newBook: Document = new BookModel(book);
 
     await newBook.save();
 
     return newBook.toObject();
   }
 
-  async getBook(id: string): Promise<Book> {
-    const targetBook = await BookModel.findOne({ id });
+  static async getBook(id: string): Promise<Book | boolean> {
+    const targetBook: Document = await BookModel.findOne({ id });
 
     if (!targetBook) {
-      return;
+      return false;
     }
 
     return targetBook.toObject();
   }
 
-  async getBooks(): Promise<Book[]> {
-    const books = await BookModel.find();
+  static async getBooks(): Promise<Book[]> {
+    const books: Document[] = await BookModel.find();
 
-    return books.map((book: any) => book.toObject());
+    return books.map((book: Document) => book.toObject());
   }
 
-  async updateBook(book: Book): Promise<Book> {
+  static async updateBook(book: Book): Promise<Book | boolean> {
     const { id } = book;
-    const targetBook = await BookModel.findOne({ id });
+    const targetBook: Document = await BookModel.findOne({ id });
 
     if (!targetBook) {
-      return;
+      return false;
     }
 
     await BookModel.updateOne({ id }, book);
 
-    const updatedBook = await BookModel.findOne({ id });
+    const updatedBook: Document = await BookModel.findOne({ id });
 
     return updatedBook.toObject();
   }
 
-  async deleteBook(id: string): Promise<Boolean> {
-    const targetBook = await BookModel.findOne({ id });
+  static async deleteBook(id: string): Promise<boolean> {
+    const targetBook: Document = await BookModel.findOne({ id });
 
     if (!targetBook) {
       return false;
@@ -69,4 +58,4 @@ class BooksRepository {
   }
 }
 
-export = BooksRepository;
+export default BooksRepository;
