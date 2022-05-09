@@ -1,36 +1,31 @@
-const express = require('express');
-const { v4: uuid } = require('uuid');
-const { Container } = require('inversify');
-require('reflect-metadata');
+import express, { Router, Request, Response, NextFunction, Errback }  from 'express';
+import { v4 as uuid } from 'uuid';
 
-const { incrCounter, getCounters } = require('../counter');
-const { parseBookDataFromReq, notFoundMessage } = require('../utils');
-const { NotFoundError } = require('../errors');
-const { uploadBookFileFields } = require('../middleware');
+import { incrCounter, getCounters, Counts } from '../counter';
+import { parseBookDataFromReq, notFoundMessage } from '../utils';
+import { NotFoundError } from '../errors';
+import { uploadBookFileFields } from '../middleware';
+import BooksRepository from '../BooksRepository';
+import iocContainer from '../ioc-container';
+import { Book } from '../book';
 
-const router = express.Router();
+const router: Router = express.Router();
 const backToBooksLink = { to: '/books', title: 'К списку', icon: 'arrow-left' };
 
-const BooksRepository = require('../BooksRepository');
+const repo: BooksRepository = iocContainer.get<BooksRepository>(BooksRepository);
 
-const container = new Container();
-
-container.bind(BooksRepository).toSelf();
-
-const repo = container.get(BooksRepository);
-
-router.get('/', async (__, res) => {
-  const books = await repo.getBooks();
-  const views = await getCounters(books.map(book => book.id));
+router.get('/', async (__: Request, res: Response) => {
+  const books: Book[] = await repo.getBooks();
+  const views: Counts = await getCounters(books.map(book => book.id));
 
   res.render('books/index', { title: 'Главная', books, views, link: false });
 });
 
-router.get('/create', (__, res) => {
+router.get('/create', (__: Request, res: Response) => {
   res.render('books/create', { title: 'Добавить книгу', book: {}, link: backToBooksLink });
 });
 
-router.post('/create', uploadBookFileFields, async (req, res) => {
+router.post('/create', uploadBookFileFields, async (req, res: Response) => {
   await repo.createBook({ id: uuid(), ...parseBookDataFromReq(req) });
 
   res.redirect('/books');
@@ -38,7 +33,7 @@ router.post('/create', uploadBookFileFields, async (req, res) => {
 
 router.post('/update/:id', uploadBookFileFields, async (req, res, next) => {
   const { id } = req.params;
-  const updatedBook = await repo.updateBook({ id, ...parseBookDataFromReq(req) });
+  const updatedBook: Book = await repo.updateBook({ id, ...parseBookDataFromReq(req) }) as Book;
 
   if (!updatedBook) {
     next(new NotFoundError(notFoundMessage(id)));
@@ -49,7 +44,7 @@ router.post('/update/:id', uploadBookFileFields, async (req, res, next) => {
 
 router.get('/update/:id', async (req, res, next) => {
   const { id } = req.params;
-  const targetBook = await repo.getBook(id);
+  const targetBook: Book = await repo.getBook(id) as Book;
 
   if (!targetBook) {
     next(new NotFoundError(notFoundMessage(id)));
@@ -60,18 +55,18 @@ router.get('/update/:id', async (req, res, next) => {
 
 router.get('/:id', async (req, res, next) => {
   const { id } = req.params;
-  const targetBook = await repo.getBook(id);
+  const targetBook: Book = await repo.getBook(id) as Book;
 
   if (!targetBook) {
     next(new NotFoundError(notFoundMessage(id)));
   }
 
-  const views = await incrCounter(targetBook.id);
+  const views: number = await incrCounter(targetBook.id);
 
   res.render('books/view', { title: 'Информация о книге', book: targetBook, views, link: backToBooksLink });
 });
 
-router.use((err, __, res, ___) => {
+router.use((err: Error, __: Request, res: Response, ___: NextFunction) => {
   if (err instanceof NotFoundError) {
     return res.render('not-found', { link: false });
   }
@@ -79,4 +74,4 @@ router.use((err, __, res, ___) => {
   res.status(500).send({ status: 'error', message: err.message });
 });
 
-module.exports = router;
+export default router;

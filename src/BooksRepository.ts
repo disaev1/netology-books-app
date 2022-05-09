@@ -6,7 +6,7 @@ import BookModel, { Book } from './book';
 
 @injectable()
 class BooksRepository {
-  static async createBook(book: Book): Promise<Book> {
+  async createBook(book: Book): Promise<Book> {
     const newBook: Document = new BookModel(book);
 
     await newBook.save();
@@ -14,7 +14,7 @@ class BooksRepository {
     return newBook.toObject();
   }
 
-  static async getBook(id: string): Promise<Book | boolean> {
+  async getBook(id: string): Promise<Book | boolean> {
     const targetBook: Document = await BookModel.findOne({ id });
 
     if (!targetBook) {
@@ -24,13 +24,13 @@ class BooksRepository {
     return targetBook.toObject();
   }
 
-  static async getBooks(): Promise<Book[]> {
+  async getBooks(): Promise<Book[]> {
     const books: Document[] = await BookModel.find();
 
     return books.map((book: Document) => book.toObject());
   }
 
-  static async updateBook(book: Book): Promise<Book | boolean> {
+  async updateBook(book: Book): Promise<Book | boolean> {
     const { id } = book;
     const targetBook: Document = await BookModel.findOne({ id });
 
@@ -45,7 +45,7 @@ class BooksRepository {
     return updatedBook.toObject();
   }
 
-  static async deleteBook(id: string): Promise<boolean> {
+  async deleteBook(id: string): Promise<boolean> {
     const targetBook: Document = await BookModel.findOne({ id });
 
     if (!targetBook) {
