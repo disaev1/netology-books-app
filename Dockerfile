@@ -8,6 +8,5 @@ RUN yarn install
 COPY public/ ./public
 COPY views/ ./views
 COPY dist/ ./dist
-RUN tsc -p ./
 
 CMD yarn start
